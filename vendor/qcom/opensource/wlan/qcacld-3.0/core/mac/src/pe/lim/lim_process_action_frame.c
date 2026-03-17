@@ -2323,7 +2323,7 @@ void lim_process_action_frame_no_session(struct mac_context *mac, uint8_t *pBd)
 	tpSirMacMgmtHdr mac_hdr = WMA_GET_RX_MAC_HEADER(pBd);
 	uint32_t frame_len = WMA_GET_RX_PAYLOAD_LEN(pBd);
 	uint8_t *pBody = WMA_GET_RX_MPDU_DATA(pBd);
-	tpSirMacActionFrameHdr action_hdr = (tpSirMacActionFrameHdr) pBody;
+	tpSirMacActionFrameHdr action_hdr = (tpSirMacActionFrameHdr)pBody;
 	tpSirMacVendorSpecificPublicActionFrameHdr vendor_specific;
 	struct wlan_objmgr_vdev *vdev;
 	enum QDF_OPMODE mode;
@@ -2331,7 +2331,8 @@ void lim_process_action_frame_no_session(struct mac_context *mac, uint8_t *pBd)
 
 	pe_debug("Received an action frame category: %d action_id: %d",
 		 action_hdr->category, (action_hdr->category ==
-		 ACTION_CATEGORY_PUBLIC || action_hdr->category ==
+		 ACTION_CATEGORY_PUBLIC ||
+		 action_hdr->category ==
 		 ACTION_CATEGORY_PROTECTED_DUAL_OF_PUBLIC_ACTION) ?
 		 action_hdr->actionID : 255);
 
@@ -2344,7 +2345,10 @@ void lim_process_action_frame_no_session(struct mac_context *mac, uint8_t *pBd)
 	switch (action_hdr->category) {
 	case ACTION_CATEGORY_PUBLIC:
 	case ACTION_CATEGORY_PROTECTED_DUAL_OF_PUBLIC_ACTION:
-		if (action_hdr->actionID == PUB_ACTION_VENDOR_SPECIFIC) {
+
+		switch (action_hdr->actionID) {
+
+		case PUB_ACTION_VENDOR_SPECIFIC:
 			vendor_specific =
 				(tpSirMacVendorSpecificPublicActionFrameHdr)
 				action_hdr;
@@ -2363,75 +2367,75 @@ void lim_process_action_frame_no_session(struct mac_context *mac, uint8_t *pBd)
 
 			/* Drop P2P frames as they are handled by P2P module */
 			if (wlan_p2p_is_action_frame_of_p2p_type(
-						(uint8_t *)mac_hdr,
-						WMA_GET_RX_MPDU_LEN(pBd))) {
+					(uint8_t *)mac_hdr,
+					WMA_GET_RX_MPDU_LEN(pBd))) {
 				pe_debug("Drop P2P public action frame as already handled in p2p module");
 				return;
 			}
-<<<<<<< HEAD
-=======
+
 			fallthrough;
+
 		case SIR_MAC_ACTION_GAS_INITIAL_REQUEST:
 		case SIR_MAC_ACTION_GAS_INITIAL_RESPONSE:
 		case SIR_MAC_ACTION_GAS_COMEBACK_REQUEST:
 		case SIR_MAC_ACTION_GAS_COMEBACK_RESPONSE:
-			/*
-			 * Forward the GAS frames to  wpa_supplicant
-			 * type is ACTION
-			 */
-			lim_send_sme_mgmt_frame_ind(mac,
-					mac_hdr->fc.subType,
-					(uint8_t *) mac_hdr,
-					frame_len + sizeof(tSirMacMgmtHdr), 0,
-					WMA_GET_RX_FREQ(pBd), NULL,
-						WMA_GET_RX_RSSI_NORMALIZED(pBd),
-						RXMGMT_FLAG_NONE);
-				break;
+			lim_send_sme_mgmt_frame_ind(
+				mac,
+				mac_hdr->fc.subType,
+				(uint8_t *)mac_hdr,
+				frame_len + sizeof(tSirMacMgmtHdr),
+				0,
+				WMA_GET_RX_FREQ(pBd),
+				NULL,
+				WMA_GET_RX_RSSI_NORMALIZED(pBd),
+				RXMGMT_FLAG_NONE);
+			break;
+
 		case LIM_PUBLIC_ACTION_FILS_DISCOVERY:
 			pdev_id = wlan_objmgr_pdev_get_pdev_id(mac->pdev);
+
 			vdev = wlan_objmgr_get_vdev_by_macaddr_from_psoc(
-					mac->psoc, pdev_id, mac_hdr->bssId,
-					WLAN_LEGACY_MAC_ID);
+				mac->psoc, pdev_id, mac_hdr->bssId,
+				WLAN_LEGACY_MAC_ID);
+
 			if (!vdev)
 				vdev = wlan_objmgr_get_vdev_by_id_from_psoc(
-						mac->psoc, 0, WLAN_LEGACY_MAC_ID);
+					mac->psoc, 0,
+					WLAN_LEGACY_MAC_ID);
+
 			if (vdev) {
 				mode = wlan_vdev_mlme_get_opmode(vdev);
-				wlan_objmgr_vdev_release_ref(vdev,
-						WLAN_LEGACY_MAC_ID);
+
+				wlan_objmgr_vdev_release_ref(
+					vdev,
+					WLAN_LEGACY_MAC_ID);
+
 				if (mode == QDF_STA_MODE ||
 				    mode == QDF_SAP_MODE) {
 					pe_err_rl("Do not forward FILS discovery in AP/STA mode with no session");
 					break;
 				}
 			}
-			lim_send_sme_mgmt_frame_ind(mac,
-					mac_hdr->fc.subType,
-					(uint8_t *)mac_hdr,
-					frame_len + sizeof(tSirMacMgmtHdr), 0,
-					WMA_GET_RX_FREQ(pBd),
-					WMA_GET_RX_RSSI_NORMALIZED(pBd),
-					RXMGMT_FLAG_NONE);
+
+			lim_send_sme_mgmt_frame_ind(
+				mac,
+				mac_hdr->fc.subType,
+				(uint8_t *)mac_hdr,
+				frame_len + sizeof(tSirMacMgmtHdr),
+				0,
+				WMA_GET_RX_FREQ(pBd),
+				WMA_GET_RX_RSSI_NORMALIZED(pBd),
+				RXMGMT_FLAG_NONE);
 			break;
+
 		default:
 			pe_info_rl("Unhandled public action frame: %x",
 				   action_hdr->actionID);
 			break;
->>>>>>> 23bd05db (qcacld-3.0: Add packet injection and channel fix support)
 		}
 
-		/*
-		 * Forward all public action frame with no session to
-		 * wpa_supplicant
-		 */
-		lim_send_sme_mgmt_frame_ind(mac, mac_hdr->fc.subType,
-					    (uint8_t *)mac_hdr,
-					    frame_len + sizeof(tSirMacMgmtHdr),
-					    0, WMA_GET_RX_FREQ(pBd),
-					    WMA_GET_RX_RSSI_NORMALIZED(pBd),
-					    RXMGMT_FLAG_NONE);
-
 		break;
+
 	default:
 		pe_info_rl("Unhandled action frame without session: %x",
 			   action_hdr->category);

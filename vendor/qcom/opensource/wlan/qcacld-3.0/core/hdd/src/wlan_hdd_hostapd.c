@@ -8010,12 +8010,30 @@ wlan_util_get_chan_def(struct wireless_dev *wdev, unsigned int link_id)
 {
 	return wdev->links[link_id].ap.chandef;
 }
+
+static inline struct ieee80211_channel
+wlan_util_get_chan(struct wireless_dev *wdev, unsigned int link_id)
+{
+	return wdev->links[link_id].ap.chandef.chan;
+}
 #else
 static inline struct cfg80211_chan_def
 wlan_util_get_chan_def(struct wireless_dev *wdev, unsigned int link_id)
 {
 	return wdev->chandef;
 }
+static inline struct ieee80211_channel *
+wlan_util_get_chan(struct wireless_dev *wdev, unsigned int link_id)
+{
+	return wdev->chandef.chan;
+}
+
+static inline uint32_t
+wlan_util_get_centre_freq(struct wireless_dev *wdev, unsigned int link_id)
+{
+	return wdev->chandef.chan->center_freq;
+}
+
 #endif
 
 #if defined(WLAN_FEATURE_SR) && \
@@ -8426,7 +8444,10 @@ static int __wlan_hdd_cfg80211_start_ap(struct wiphy *wiphy,
 
 		hdd_objmgr_put_vdev_by_user(vdev, WLAN_OSIF_ID);
 
-		if (wlan_get_operation_chan_freq(link_info->vdev) !=
+        if (wlan_util_get_chan(wdev, link_id) &&
+          wlan_get_operation_chan_freq(link_info->vdev) !=
+		  params->chandef.chan->center_freq)
+	      hdd_update_param_chandef(link_info, &params->chandef);
 				params->chandef.chan->center_freq)
 			hdd_update_param_chandef(link_info, &params->chandef);
 
