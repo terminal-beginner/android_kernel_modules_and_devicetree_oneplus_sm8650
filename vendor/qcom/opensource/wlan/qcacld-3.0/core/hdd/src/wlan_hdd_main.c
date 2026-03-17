@@ -10411,7 +10411,7 @@ int wlan_hdd_set_mon_chan(struct hdd_adapter *adapter, qdf_freq_t freq,
 		hdd_err_rl("Not supported, adapter is not in monitor mode");
 		return -EINVAL;
 	}
-
+	
 	sta_ctx = WLAN_HDD_GET_STATION_CTX_PTR(adapter->deflink);
 	ch_info = &sta_ctx->ch_info;
 
