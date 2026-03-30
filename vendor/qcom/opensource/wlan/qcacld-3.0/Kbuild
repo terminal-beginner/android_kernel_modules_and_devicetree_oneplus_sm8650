@@ -27,7 +27,7 @@ WLAN_PLATFORM_INC ?= $(WLAN_ROOT)/../platform/inc
 DATA_IPA_INC ?= $(WLAN_ROOT)/../dataipa/drivers/platform/msm/include
 DATA_IPA_UAPI_INC ?= $(DATA_IPA_INC)/uapi
 
-ifeq ($(KERNEL_BUILD), n)
+ifeq ($(KERNEL_BUILD), y)
 ifneq ($(ANDROID_BUILD_TOP),)
       ANDROID_BUILD_TOP_REL := $(shell python -c "import os.path; print(os.path.relpath('$(ANDROID_BUILD_TOP)'))")
       override WLAN_ROOT := $(ANDROID_BUILD_TOP_REL)/$(WLAN_ROOT)
@@ -3351,8 +3351,13 @@ INCS +=		$(COAP_CORE_INC)
 INCS +=		$(COAP_WMI_INC)
 
 ccflags-y += $(INCS)
-
 ccflags-y += -include $(WLAN_ROOT)/configs/default_config.h
+
+cppflags-y +=	-DANI_OS_TYPE_ANDROID=6 \
+		-D__ANDROID_COMMON_KERNEL__ \
+		-Wall \
+		-Werror \
+		-D__linux__
 
 # CFG80211_MLO_KEY_OPERATION_SUPPORT
 # Used to indicate the Linux Kernel contains support for ML key operation
