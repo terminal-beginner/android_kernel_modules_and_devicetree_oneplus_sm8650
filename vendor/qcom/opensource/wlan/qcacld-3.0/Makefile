@@ -35,7 +35,7 @@ KBUILD_OPTIONS += \
     DYNAMIC_SINGLE_CHIP=kiwi_v2 \
     MODNAME=qca_cld3_kiwi_v2 \
     DEVNAME=kiwi_v2 \
-    BOARD_PLATFORM=kalama \
+    BOARD_PLATFORM=pineapple \
     WLAN_CTRL_NAME=wlan
 endif
 
